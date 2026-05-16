@@ -16,9 +16,9 @@ export const DEFAULT_POLICY_CONFIG = {
   requireChampionAgreement: false,
   requireRegimeChampionAgreement: false,
   horizonWeights: {
-    '1d': 1,
-    '3d': 1.2,
-    '5d': 1.35
+    '1p': 1,
+    '3p': 1.2,
+    '5p': 1.35
   }
 };
 

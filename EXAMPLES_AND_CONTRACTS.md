@@ -17,14 +17,17 @@ This document provides concrete examples for the most important persisted and re
   "referenceClose": 300.2300109863281,
   "regime": "bull-high-vol-breakout",
   "horizons": {
-    "1d": {
-      "horizonDays": 1,
+    "1p": {
+      "horizonPeriods": 1,
       "probabilityUp": 0.5606703248549876,
       "baseProbabilityUp": 0.5606703248549876,
       "feedbackAdjustedProbabilityUp": 0.5606703248549876,
       "rawProbabilityUp": 0.6135078657191617,
       "probabilityDown": 0.4393296751450124,
       "direction": "up",
+      "isPump": 0,
+      "isCrash": 0,
+      "move": 0.012,
       "components": {
         "logisticProbability": 0.39600448609112093,
         "heuristicProbability": 0.929012977044129
@@ -68,13 +71,19 @@ This document provides concrete examples for the most important persisted and re
   "referenceClose": 100,
   "actualClose": 99,
   "regime": "bull-high-vol-breakout",
-  "horizon": "1d",
-  "horizonDays": 1,
+  "horizon": "1p",
+  "horizonPeriods": 1,
   "probabilityUp": 0.62,
   "baseProbabilityUp": 0.62,
   "direction": "up",
+  "isPump": 0,
+  "isCrash": 0,
+  "move": -0.01,
   "actual": 0,
   "actualDirection": "down",
+  "actualIsPump": 0,
+  "actualIsCrash": 0,
+  "actualMove": -0.01,
   "correct": false,
   "brier": 0.3844,
   "logLoss": 0.9676,
@@ -95,7 +104,7 @@ This document provides concrete examples for the most important persisted and re
   "schemaVersion": "mps.feedback-summary.v1",
   "recentObservations": 2,
   "byHorizon": {
-    "3d": {
+    "3p": {
       "observations": 1,
       "accuracy": 1,
       "avgBrier": 0.1764,
@@ -104,7 +113,7 @@ This document provides concrete examples for the most important persisted and re
       "avgEdge": 0.16,
       "latestScoredAt": "2026-01-06T00:00:00.000Z"
     },
-    "1d": {
+    "1p": {
       "observations": 1,
       "accuracy": 0,
       "avgBrier": 0.3844,

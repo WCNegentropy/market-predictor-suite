@@ -10,9 +10,9 @@ function basePolicy() {
     referenceClose: 100,
     config: { minHorizonConfidence: 0.55 },
     horizons: {
-      '1d': { direction: 'up', gated: true, consensusSpread: 0.18 },
-      '3d': { direction: 'up', gated: true, consensusSpread: 0.16 },
-      '5d': { direction: 'up', gated: false, consensusSpread: 0.2 }
+      '1p': { direction: 'up', gated: true, consensusSpread: 0.18 },
+      '3p': { direction: 'up', gated: true, consensusSpread: 0.16 },
+      '5p': { direction: 'up', gated: false, consensusSpread: 0.2 }
     },
     consensus: {
       dominantDirection: 'up',

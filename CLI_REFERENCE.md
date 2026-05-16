@@ -6,7 +6,9 @@ Most commands support these options:
 
 - `--symbol <symbol>`
 - `--asset <asset>` where asset is typically `stocks` or `crypto`
-- `--lookback <days>`
+- `--lookback <count>` (count of periods/bars)
+- `--interval <interval>` (e.g., `1d`, `1h`, `15m`; defaults to `1d`)
+- `--target-type <type>` (`direction`, `pump`, `crash`; defaults to `direction`)
 - `--state-dir <dir>`
 
 ## Command catalog
@@ -43,9 +45,9 @@ Most commands support these options:
 ## Example invocations
 
 ```bash
-node src/cli/index.js fetch --symbol AAPL --asset stocks --lookback 365
-node src/cli/index.js train --symbol AAPL --asset stocks --lookback 365
-node src/cli/index.js predict --symbol BTCUSD --asset crypto --lookback 365
+node src/cli/index.js fetch --symbol AAPL --asset stocks --lookback 365 --interval 1d
+node src/cli/index.js train --symbol BTCUSD --asset crypto --lookback 500 --interval 1h --target-type pump
+node src/cli/index.js predict --symbol BTCUSD --asset crypto --lookback 365 --target-type direction
 node src/cli/index.js policy-predict --symbol AAPL --asset stocks --lookback 260
 node src/cli/index.js risk-predict --symbol BTCUSD --asset crypto --lookback 260
 node src/cli/index.js import-feedback --symbol AAPL --asset stocks --input historical-feedback.jsonl

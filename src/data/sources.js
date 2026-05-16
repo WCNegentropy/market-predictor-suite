@@ -33,9 +33,9 @@ function rangeForLookback(lookback) {
   return '10y';
 }
 
-async function fetchStocksYahoo(symbol, lookback) {
+async function fetchStocksYahoo(symbol, lookback, interval = '1d') {
   const normalized = normalizeStockSymbol(symbol);
-  const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(normalized)}?interval=1d&range=${rangeForLookback(lookback)}&includePrePost=false&events=div%2Csplits`;
+  const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(normalized)}?interval=${interval}&range=${rangeForLookback(lookback)}&includePrePost=false&events=div%2Csplits`;
   const json = await getJson(url, { 'User-Agent': 'market-predictor-suite' });
   const result = json?.chart?.result?.[0];
   const quote = result?.indicators?.quote?.[0];
@@ -71,10 +71,16 @@ async function fetchStocksStooq(symbol, lookback) {
   return { provider: 'stooq', bars };
 }
 
-async function fetchCryptoCryptoCompare(symbol, lookback) {
+async function fetchCryptoCryptoCompare(symbol, lookback, interval = '1d') {
   const { base, quote } = normalizeCryptoPair(symbol);
   const limit = Math.min(Math.max(lookback, 60), 2000);
-  const url = `https://min-api.cryptocompare.com/data/v2/histoday?fsym=${base}&tsym=${quote}&limit=${limit}`;
+  
+  let endpoint = 'histoday';
+  if (interval.endsWith('h')) endpoint = 'histohour';
+  if (interval.endsWith('m')) endpoint = 'histominute';
+  
+  const aggregate = parseInt(interval) || 1;
+  const url = `https://min-api.cryptocompare.com/data/v2/${endpoint}?fsym=${base}&tsym=${quote}&limit=${limit}&aggregate=${aggregate}`;
   const json = await getJson(url, { 'User-Agent': 'market-predictor-suite' });
   const rows = json?.Data?.Data;
   if (!Array.isArray(rows)) throw new Error('CryptoCompare payload missing rows');
@@ -110,7 +116,7 @@ async function fetchCryptoCoinbase(symbol, lookback) {
   return { provider: 'coinbase', bars };
 }
 
-export async function fetchBars({ asset, symbol, lookback }) {
+export async function fetchBars({ asset, symbol, lookback, interval = '1d' }) {
   const providers = asset === 'stocks'
     ? [fetchStocksYahoo, fetchStocksStooq]
     : asset === 'crypto'
@@ -120,7 +126,7 @@ export async function fetchBars({ asset, symbol, lookback }) {
   const errors = [];
   for (const provider of providers) {
     try {
-      return await provider(symbol, lookback);
+      return await provider(symbol, lookback, interval);
     } catch (error) {
       errors.push(`${provider.name}: ${error.message}`);
     }

@@ -19,9 +19,10 @@ export function statePaths(stateDir, asset, symbol) {
 export function loadState(paths) {
   const rawFeatures = readJson(paths.features, { trainingRowsByHorizon: {}, latestFeature: null, provider: null, updatedAt: null, horizons: [] });
   const features = Array.isArray(rawFeatures)
-    ? { trainingRowsByHorizon: { '1d': rawFeatures }, latestFeature: null, provider: null, updatedAt: null, horizons: ['1d'] }
-    : rawFeatures.trainingRows
-      ? { trainingRowsByHorizon: { '1d': rawFeatures.trainingRows }, latestFeature: rawFeatures.latestFeature ?? null, provider: rawFeatures.provider ?? null, updatedAt: rawFeatures.updatedAt ?? null, horizons: rawFeatures.horizons ?? ['1d'] }
+    ? { trainingRowsByHorizon: { '1p': rawFeatures }, latestFeature: null, provider: null, updatedAt: null, horizons: ['1p'] }
+    : rawFeatures?.trainingRows
+      ? { trainingRowsByHorizon: { '1p': rawFeatures.trainingRows }, latestFeature: rawFeatures.latestFeature ?? null, provider: rawFeatures.provider ?? null, updatedAt: rawFeatures.updatedAt ?? null, horizons: rawFeatures.horizons ?? ['1p'] }
+
       : { trainingRowsByHorizon: rawFeatures.trainingRowsByHorizon ?? {}, latestFeature: rawFeatures.latestFeature ?? null, provider: rawFeatures.provider ?? null, updatedAt: rawFeatures.updatedAt ?? null, horizons: rawFeatures.horizons ?? Object.keys(rawFeatures.trainingRowsByHorizon ?? {}) };
   return {
     bars: readJson(paths.bars, []),

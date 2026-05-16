@@ -19,25 +19,28 @@ Used in `prediction-ledger.jsonl`.
 - `provider`: data provider name used for the prediction context
 - `baseTimestamp`: ISO timestamp of the feature row / reference bar
 - `referenceClose`: close price used as the prediction reference
-- `regime`: latest classified market regime
-- `horizons`: object keyed by horizon labels such as `1d`, `3d`, `5d`
+- `regime`: latest classified market regime (e.g., `bull`, `bear`, `spike-up`, `crash-down`)
+- `horizons`: object keyed by horizon labels such as `1p`, `3p`, `5p`
 
 #### Horizon object fields
 
 A horizon record may contain:
 
-- `horizonDays`
+- `horizonPeriods` (formerly `horizonDays`)
 - `probabilityUp`
 - `baseProbabilityUp`
 - `feedbackAdjustedProbabilityUp`
 - `rawProbabilityUp`
 - `probabilityDown`
 - `direction`
+- `isPump` (0/1 boolean)
+- `isCrash` (0/1 boolean)
+- `move` (decimal price move)
 - `components`
 - `componentWeights`
 - `calibrator`
 - `feedbackAdjustment`
-- later evaluation fields such as `targetTimestamp`, `actualClose`, `actualDirection`, `correct`, `brier`, `logLoss`, `scoredAt`
+- later evaluation fields such as `targetTimestamp`, `actualClose`, `actualDirection`, `actualIsPump`, `actualIsCrash`, `actualMove`, `correct`, `brier`, `logLoss`, `scoredAt`
 
 ### `mps.feedback.v1`
 
@@ -58,12 +61,18 @@ Used in `feedback-records.jsonl`.
 - `actualClose`
 - `regime`
 - `horizon`
-- `horizonDays`
+- `horizonPeriods`
 - `probabilityUp`
 - `baseProbabilityUp`
 - `direction`
+- `isPump`
+- `isCrash`
+- `move`
 - `actual`
 - `actualDirection`
+- `actualIsPump`
+- `actualIsCrash`
+- `actualMove`
 - `correct`
 - `brier`
 - `logLoss`

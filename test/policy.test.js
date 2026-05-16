@@ -14,7 +14,7 @@ test('policy snapshot gates in a strong aligned long consensus', () => {
   const snapshot = buildPolicySnapshot({
     ...overlayTemplate,
     horizons: {
-      '1d': {
+      '1p': {
         metaProbabilityUp: 0.66,
         metaDirection: 'up',
         champion: 'ensembleCalibrated',
@@ -25,7 +25,7 @@ test('policy snapshot gates in a strong aligned long consensus', () => {
         entrants: { logistic: 0.62, heuristic: 0.58, ensembleRaw: 0.64, ensembleCalibrated: 0.63 },
         metaWeights: { logistic: 0.25, heuristic: 0.2, ensembleRaw: 0.25, ensembleCalibrated: 0.3 }
       },
-      '3d': {
+      '3p': {
         metaProbabilityUp: 0.68,
         metaDirection: 'up',
         champion: 'ensembleRaw',
@@ -36,7 +36,7 @@ test('policy snapshot gates in a strong aligned long consensus', () => {
         entrants: { logistic: 0.65, heuristic: 0.59, ensembleRaw: 0.67, ensembleCalibrated: 0.66 },
         metaWeights: { logistic: 0.25, heuristic: 0.2, ensembleRaw: 0.3, ensembleCalibrated: 0.25 }
       },
-      '5d': {
+      '5p': {
         metaProbabilityUp: 0.64,
         metaDirection: 'up',
         champion: 'logistic',
@@ -58,7 +58,7 @@ test('policy snapshot holds when horizons disagree and confidence is weak', () =
   const snapshot = buildPolicySnapshot({
     ...overlayTemplate,
     horizons: {
-      '1d': {
+      '1p': {
         metaProbabilityUp: 0.52,
         metaDirection: 'up',
         champion: 'logistic',
@@ -69,7 +69,7 @@ test('policy snapshot holds when horizons disagree and confidence is weak', () =
         entrants: { logistic: 0.49, heuristic: 0.46, ensembleRaw: 0.52, ensembleCalibrated: 0.53 },
         metaWeights: { logistic: 0.25, heuristic: 0.25, ensembleRaw: 0.25, ensembleCalibrated: 0.25 }
       },
-      '3d': {
+      '3p': {
         metaProbabilityUp: 0.47,
         metaDirection: 'down',
         champion: 'ensembleRaw',
@@ -80,7 +80,7 @@ test('policy snapshot holds when horizons disagree and confidence is weak', () =
         entrants: { logistic: 0.51, heuristic: 0.45, ensembleRaw: 0.49, ensembleCalibrated: 0.47 },
         metaWeights: { logistic: 0.25, heuristic: 0.25, ensembleRaw: 0.25, ensembleCalibrated: 0.25 }
       },
-      '5d': {
+      '5p': {
         metaProbabilityUp: 0.51,
         metaDirection: 'up',
         champion: 'ensembleCalibrated',

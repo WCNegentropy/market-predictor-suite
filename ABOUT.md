@@ -10,9 +10,9 @@ The package focuses on being runnable on a single machine with public data, simp
 
 The system is no longer just a predictor. It now behaves as a layered local decision engine:
 
-- Data ingestion with fallback providers.
+- Data ingestion with fallback providers and custom intervals (`1d`, `1h`, `15m`).
 - Technical feature generation.
-- Multi-horizon model training.
+- Multi-horizon model training for multiple target types (`direction`, `pump`, `crash`).
 - Ensemble prediction.
 - Tournament-style meta selection.
 - Confidence gating and consensus policy.

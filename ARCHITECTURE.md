@@ -32,6 +32,13 @@ After base prediction, the package can optionally pass output through higher-ord
 2. **Policy layer** gates weak signals and requires consensus.
 3. **Risk layer** converts allowed signals into exposure and stop/target rules.
 
+### Target types
+
+The system supports multiple target types via `--target-type`:
+- `direction`: standard next-period up/down.
+- `pump`: identification of significant upward moves.
+- `crash`: identification of significant downward moves.
+
 ### Self-training flow
 
 1. Predictions are written to a standardized prediction ledger.

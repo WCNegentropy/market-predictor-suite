@@ -26,7 +26,7 @@ These are simple, free, and require no account for the MVP. The adapter layer is
 
 The starter model uses practical baseline signals:
 
-- 1-day, 3-day, 5-day, 10-day momentum.
+- 1-period, 3-period, 5-period, 10-period momentum.
 - SMA spread (5 vs 20, 10 vs 50).
 - RSI(14).
 - Rolling volatility(10).
@@ -35,11 +35,11 @@ The starter model uses practical baseline signals:
 
 ## Prediction target
 
-The default target is next-period direction (`up` / `down`) with a confidence score derived from a linear score passed through a logistic function. This keeps the MVP interpretable and easy to backtest.
+The default target is next-period direction (`up` / `down`) with a confidence score derived from a linear score passed through a logistic function. The suite also supports specialized targets via `--target-type` (e.g., `direction`, `pump`, `crash`). This keeps the MVP interpretable and easy to backtest.
 
 ## Local workflow
 
-1. Fetch the newest historical bars for a symbol.
+1. Fetch the newest historical bars for a symbol at a specified `--interval` (e.g., `1d`, `1h`, `15m`).
 2. Score any outstanding prior prediction against the newest close.
 3. Train/update the online model on all available labeled examples.
 4. Save a new prediction for the next period.
@@ -163,8 +163,8 @@ npm test
 
 The suite now predicts across multiple horizons and tracks market regime context:
 
-- Multi-horizon targets for 1-day, 3-day, and 5-day direction.
-- Regime labeling from trend, volatility, and breakout state.
+- Multi-horizon targets for 1-period, 3-period, and 5-period direction (`1p`, `3p`, `5p`).
+- Regime labeling from trend, volatility, breakout state, and extremes (`spike-up`, `crash-down`).
 - Horizon-specific walk-forward metrics, including regime-sliced accuracy, Brier score, and log loss.
 - Live predictions that return a regime plus calibrated probabilities for each horizon.
 

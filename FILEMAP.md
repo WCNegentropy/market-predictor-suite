@@ -87,5 +87,5 @@
 - **http.js** — HTTP helpers for public data pulls.
 - **lock.js** — target-level lock file coordination.
 - **math.js** — math/stat helpers.
-- **regime.js** — horizon labels and regime classification.
+- **regime.js** — period-agnostic horizon labels and regime classification.
 - **stateMaintenance.js** — pruning and diagnostic helpers.

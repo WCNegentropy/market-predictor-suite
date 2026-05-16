@@ -11,7 +11,7 @@ function makePrediction() {
     provider: 'test-provider',
     regime: 'bull-high-vol-breakout',
     horizons: {
-      '1d': {
+      '1p': {
         horizonDays: 1,
         probabilityUp: 0.7,
         baseProbabilityUp: 0.68,
@@ -46,7 +46,7 @@ test('feedback summary and adjustment learn from resolved records', () => {
       recordType: 'prediction_resolved',
       predictionId: `p-${i}`,
       scoredAt: `2026-01-${String(i + 1).padStart(2, '0')}T00:00:00.000Z`,
-      horizon: '3d',
+      horizon: '3p',
       regime: 'bull-high-vol-breakout',
       probabilityUp: 0.72,
       actual: 0,
@@ -56,8 +56,8 @@ test('feedback summary and adjustment learn from resolved records', () => {
     });
   }
   const summary = summarizeFeedbackRecords(rows);
-  const adjusted = applySelfTrainingAdjustment(0.74, summary, '3d', 'bull-high-vol-breakout');
-  assert.equal(summary.byHorizon['3d'].observations, 8);
+  const adjusted = applySelfTrainingAdjustment(0.74, summary, '3p', 'bull-high-vol-breakout');
+  assert.equal(summary.byHorizon['3p'].observations, 8);
   assert.ok(adjusted.adjustment.applied);
   assert.ok(adjusted.probabilityUp < 0.74);
 });

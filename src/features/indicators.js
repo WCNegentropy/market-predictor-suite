@@ -135,10 +135,16 @@ function computeFeaturePoint(bars, idx) {
   };
 }
 
-export function buildDataset(bars, horizons = DEFAULT_HORIZONS) {
+export function buildDataset(bars, horizons = DEFAULT_HORIZONS, interval = '1d') {
   const trainingRowsByHorizon = Object.fromEntries(horizons.map(h => [horizonLabel(h), []]));
   let latestFeature = null;
   if (bars.length < 90) return { trainingRowsByHorizon, latestFeature, horizons: horizons.map(horizonLabel) };
+  
+  // Adaptive thresholding for pumps/crashes based on interval volatility
+  const typicalVol = bars.length > 50 ? mean(bars.slice(-50).map((b, i, arr) => i > 0 ? Math.abs(b.close - arr[i-1].close) / arr[i-1].close : 0).filter(v => v > 0)) : 0.01;
+  const pumpThreshold = typicalVol * 2.5;
+  const crashThreshold = -typicalVol * 2.5;
+
   const maxHorizon = Math.max(...horizons);
   for (let i = 60; i < bars.length; i++) {
     const point = computeFeaturePoint(bars, i);
@@ -146,13 +152,18 @@ export function buildDataset(bars, horizons = DEFAULT_HORIZONS) {
       for (const h of horizons) {
         const futureBar = bars[i + h];
         const label = horizonLabel(h);
+        const move = pctChange(point.close, futureBar.close);
+        
         trainingRowsByHorizon[label].push({
           timestamp: point.timestamp,
           close: point.close,
           horizonDays: h,
           nextTimestamp: futureBar.timestamp,
           nextClose: futureBar.close,
+          move,
           target: futureBar.close > point.close ? 1 : 0,
+          isPump: move > pumpThreshold ? 1 : 0,
+          isCrash: move < crashThreshold ? 1 : 0,
           features: point.features,
           regime: point.regime
         });

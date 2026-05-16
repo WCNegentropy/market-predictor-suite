@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { Command } from 'commander';
 import path from 'node:path';
-import { DEFAULT_LOOKBACK, DEFAULT_STATE_DIR } from '../config/defaults.js';
+import { DEFAULT_INTERVAL, DEFAULT_LOOKBACK, DEFAULT_STATE_DIR } from '../config/defaults.js';
 import { evaluateOnly, fetchOnly, policyOnly, predictOnly, riskOnly, runDaily, tournamentPredictOnly, trainOnly } from '../pipeline/daily.js';
 import { importFeedbackLedger, importPredictionLedger, replayFeedback } from '../pipeline/importReplay.js';
 import { walkForward } from '../backtest/walkForward.js';
@@ -16,7 +16,9 @@ function applyCommon(cmd) {
   return cmd
     .requiredOption('--symbol <symbol>', 'Ticker or product symbol, e.g. AAPL or BTCUSD')
     .option('--asset <asset>', 'stocks or crypto', 'stocks')
-    .option('--lookback <days>', 'Number of daily bars', value => Number(value), DEFAULT_LOOKBACK)
+    .option('--interval <interval>', 'Data interval (e.g., 1d, 1h, 15m)', DEFAULT_INTERVAL)
+    .option('--target-type <type>', 'Target to train for (direction, pump, crash)', 'direction')
+    .option('--lookback <count>', 'Number of bars to pull', value => Number(value), DEFAULT_LOOKBACK)
     .option('--state-dir <dir>', 'State directory', DEFAULT_STATE_DIR);
 }
 

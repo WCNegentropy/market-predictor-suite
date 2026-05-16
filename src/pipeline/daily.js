@@ -30,8 +30,13 @@ function withSummary(state) {
   return state;
 }
 
-function horizonRows(state, label) {
-  return state.features.trainingRowsByHorizon?.[label] ?? [];
+function horizonRows(state, label, targetType = 'direction') {
+  const rows = state.features.trainingRowsByHorizon?.[label] ?? [];
+  if (targetType === 'direction') return rows;
+  return rows.map(row => ({
+    ...row,
+    target: targetType === 'pump' ? row.isPump : row.isCrash
+  }));
 }
 
 function refreshFeedbackState(paths, state) {
@@ -50,7 +55,11 @@ export async function fetchOnly(opts) {
   const state = loadState(paths);
   const fetched = await fetchBars(opts);
   state.bars = fetched.bars;
-  state.features = { ...buildDataset(fetched.bars, DEFAULT_HORIZONS), provider: fetched.provider, updatedAt: nowIso() };
+  state.features = { 
+    ...buildDataset(fetched.bars, DEFAULT_HORIZONS, opts.interval), 
+    provider: fetched.provider, 
+    updatedAt: nowIso() 
+  };
   refreshFeedbackState(paths, state);
   saveState(paths, withSummary(state));
   return { paths, state };
@@ -65,7 +74,7 @@ export async function trainOnly(opts, existing = null) {
   const tournamentsByHorizon = {};
   for (const h of DEFAULT_HORIZONS) {
     const label = horizonLabel(h);
-    const rows = horizonRows(state, label);
+    const rows = horizonRows(state, label, opts.targetType);
     if (!rows.length) continue;
     const previous = state.model?.horizons?.[label] ?? {};
     const model = createModel(previous);
@@ -159,13 +168,16 @@ export async function predictOnly(opts, prepared = null) {
     const ensemble = predictEnsemble(horizonModel, latestFeature.features, horizonModel.componentWeights, horizonModel.calibrator);
     const adjusted = applySelfTrainingAdjustment(ensemble.probabilityUp, state.feedback, label, latestFeature.regime);
     horizons[label] = {
-      horizonDays: h,
+      horizonPeriods: h,
       probabilityUp: adjusted.probabilityUp,
       baseProbabilityUp: ensemble.probabilityUp,
       feedbackAdjustedProbabilityUp: adjusted.probabilityUp,
       rawProbabilityUp: ensemble.rawProbabilityUp,
       probabilityDown: 1 - adjusted.probabilityUp,
       direction: adjusted.probabilityUp >= 0.5 ? 'up' : 'down',
+      isPump: latestFeature.isPump ?? 0,
+      isCrash: latestFeature.isCrash ?? 0,
+      move: latestFeature.move ?? 0,
       components: {
         logisticProbability: ensemble.logisticProbability,
         heuristicProbability: ensemble.heuristicProbability
@@ -179,7 +191,7 @@ export async function predictOnly(opts, prepared = null) {
     predictionId,
     createdAt: nowIso(),
     baseTimestamp: latestFeature.timestamp,
-    nextPeriod: 'multi_horizon_daily_close',
+    nextPeriod: `multi_horizon_${opts.interval}_close`,
     referenceClose: latestFeature.close,
     provider: state.features.provider,
     regime: latestFeature.regime,
@@ -208,13 +220,22 @@ export async function evaluateOnly(opts, existing = null) {
     if (baseIndex === undefined) continue;
     for (const [label, horizonPrediction] of Object.entries(prediction.horizons || {})) {
       if (horizonPrediction.scoredAt) continue;
-      const targetIndex = baseIndex + horizonPrediction.horizonDays;
+      const h = horizonPrediction.horizonPeriods ?? horizonPrediction.horizonDays;
+      const targetIndex = baseIndex + h;
       const futureBar = bars[targetIndex];
       if (!futureBar) continue;
-      const actual = futureBar.close > prediction.referenceClose ? 1 : 0;
+      
+      const actualMove = (futureBar.close - prediction.referenceClose) / prediction.referenceClose;
+      const actual = actualMove > 0 ? 1 : 0;
       const actualDirection = actual === 1 ? 'up' : 'down';
+      
+      // Determine actual pump/crash based on same adaptive logic or simple threshold for now
+      // Re-calculating adaptive vol here would be slow, using a simple heuristic or storing it
+      // For evaluation, we just use the direction primarily, but we can capture the move.
+      
       horizonPrediction.targetTimestamp = futureBar.timestamp;
       horizonPrediction.actualClose = futureBar.close;
+      horizonPrediction.actualMove = actualMove;
       horizonPrediction.actualDirection = actualDirection;
       horizonPrediction.correct = horizonPrediction.direction === actualDirection;
       horizonPrediction.brier = (horizonPrediction.probabilityUp - actual) ** 2;

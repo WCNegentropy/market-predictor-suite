@@ -27,7 +27,7 @@ test('bulk import merges standardized prediction and feedback records then rebui
     baseTimestamp: '2026-01-01T00:00:00.000Z',
     referenceClose: 100,
     regime: 'bull-high-vol-breakout',
-    horizons: { '1d': { horizonDays: 1, probabilityUp: 0.61, direction: 'up' } }
+    horizons: { '1p': { horizonDays: 1, probabilityUp: 0.61, direction: 'up' } }
   };
   const feedbackRecord = {
     schemaVersion: 'mps.feedback.v1',
@@ -42,7 +42,7 @@ test('bulk import merges standardized prediction and feedback records then rebui
     referenceClose: 100,
     actualClose: 103,
     regime: 'bull-high-vol-breakout',
-    horizon: '1d',
+    horizon: '1p',
     horizonDays: 1,
     probabilityUp: 0.61,
     baseProbabilityUp: 0.61,
@@ -67,7 +67,7 @@ test('bulk import merges standardized prediction and feedback records then rebui
   assert.equal(importedPredictions.addedCount, 1);
   assert.equal(importedFeedback.addedCount, 1);
   assert.equal(replayed.feedbackSummary.recentObservations, 1);
-  assert.equal(replayed.feedbackSummary.byHorizon['1d'].observations, 1);
-  assert.equal(replayed.feedbackSummary.byHorizonRegime['1d']['bull-high-vol-breakout'].accuracy, 1);
+  assert.equal(replayed.feedbackSummary.byHorizon['1p'].observations, 1);
+  assert.equal(replayed.feedbackSummary.byHorizonRegime['1p']['bull-high-vol-breakout'].accuracy, 1);
 });
 
