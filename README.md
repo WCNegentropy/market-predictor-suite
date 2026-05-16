@@ -1,146 +1,259 @@
 # market-predictor-suite
 
-A local-first market prediction and decision-support CLI for stocks or crypto.
+A local-first, free-to-run MVP market prediction suite for stocks or crypto. It uses public JSON endpoints, stores everything on disk, generates daily predictions, scores yesterday's prediction against newly pulled data, and updates model weights before issuing the next prediction.
 
-## What this project is
+## Why this shape
 
-This package is a modular Node.js CLI that pulls free public market data, engineers standard technical features, trains lightweight predictive models, evaluates prior predictions, writes new predictions, and stores all state locally on disk.
+This suite is organized as a modular CLI package instead of a server so it stays local, source-agnostic, cron-friendly, and easy to extend. The core split is:
 
-It is designed to stay fully local and automation-friendly: no web server, no open ports, no public database, and no required paid API keys for the default setup.
+- `data/`: adapters for public data sources.
+- `features/`: signal engineering.
+- `models/`: lightweight online-learning model.
+- `backtest/`: walk-forward simulation.
+- `pipeline/`: fetch -> train/update -> predict -> evaluate.
+- `state/`: local JSON history, predictions, metrics, and learned weights.
 
-## What it can do
+## Data sources
 
-- Fetch daily market bars for stocks or crypto through built-in provider fallback chains.
-- Generate feature rows and market regime labels.
-- Train a lightweight online model and blend it with heuristic signals.
-- Run walk-forward backtests.
-- Produce multi-horizon predictions.
-- Apply additive tournament ranking, confidence gating, consensus policies, and position-sizing/risk rules.
-- Persist standardized prediction and feedback ledgers for self-training.
-- Import historical prediction/feedback archives and replay them into the feedback summary.
+Default source adapters are deliberately vendor-light and free:
 
-## Core workflows
+- Stocks: Stooq daily candles via CSV over HTTPS.
+- Crypto: Coinbase public candles endpoint.
 
-### Basic cycle
+These are simple, free, and require no account for the MVP. The adapter layer is isolated so you can swap in other compatible free endpoints later.
 
-1. Fetch fresh bars.
-2. Evaluate any mature unresolved predictions.
-3. Retrain/update the model.
-4. Generate fresh predictions.
-5. Save metrics, state, and ledger records.
+## Signals included
 
-### One-command daily cycle
+The starter model uses practical baseline signals:
+
+- 1-day, 3-day, 5-day, 10-day momentum.
+- SMA spread (5 vs 20, 10 vs 50).
+- RSI(14).
+- Rolling volatility(10).
+- Volume z-score (when volume exists).
+- Mean-reversion distance from SMA20.
+
+## Prediction target
+
+The default target is next-period direction (`up` / `down`) with a confidence score derived from a linear score passed through a logistic function. This keeps the MVP interpretable and easy to backtest.
+
+## Local workflow
+
+1. Fetch the newest historical bars for a symbol.
+2. Score any outstanding prior prediction against the newest close.
+3. Train/update the online model on all available labeled examples.
+4. Save a new prediction for the next period.
+5. Persist weights, metrics, features, and prediction logs locally.
+
+## Quick start
 
 ```bash
-node src/cli/index.js run-daily --symbol AAPL --asset stocks --lookback 365
+npm install
+npm run example:stock
+npm run example:crypto
+```
+
+## CLI examples
+
+```bash
+node src/cli/index.js fetch --symbol AAPL --asset stocks --lookback 365
+node src/cli/index.js train --symbol AAPL --asset stocks --lookback 365
+node src/cli/index.js predict --symbol AAPL --asset stocks --lookback 365
 node src/cli/index.js run-daily --symbol BTCUSD --asset crypto --lookback 365
+node src/cli/index.js backtest --symbol AAPL --asset stocks --lookback 500
 ```
 
-## Main commands
+## Scheduling
 
-```text
-fetch
-train
-predict
-evaluate
-run-daily
-backtest
-tournament
-tournament-predict
-policy-predict
-risk-predict
-import-predictions
-import-feedback
-replay-feedback
-feedback-report
-report
-prune-state
-doctor
+Use cron, launchd, or Windows Task Scheduler. Example cron entry to run each trading day at 6pm local time:
+
+```cron
+0 18 * * 1-5 cd /path/to/market-predictor-suite && /usr/bin/node src/cli/index.js run-daily --symbol AAPL --asset stocks --lookback 500 >> state/cron.log 2>&1
 ```
 
-## Documentation map
+## Notes
 
-- [ABOUT.md](./ABOUT.md) — plain-language project overview.
-- [ARCHITECTURE.md](./ARCHITECTURE.md) — system design and runtime flow.
-- [CLI_REFERENCE.md](./CLI_REFERENCE.md) — commands, arguments, and call patterns.
-- [FILEMAP.md](./FILEMAP.md) — repo tree plus module-level responsibilities.
-- [STATE_AND_LEDGERS.md](./STATE_AND_LEDGERS.md) — local persistence and schema overview.
-- [AGENTS.md](./AGENTS.md) — agent/operator handoff notes.
-- [CONTRIBUTING_NOTES.md](./CONTRIBUTING_NOTES.md) — safe extension guidance.
+- No ports, databases, or public servers.
+- Everything is file-based under `state/`.
+- Model updates are intentionally lightweight so the system remains transparent and cheap to run.
 
-## Current repository shape
+## UPG-assisted iteration
 
-```text
-.
-./.gitignore
-./Makefile
-./README.md
-./docs
-./docs/confidence-policy.md
-./docs/core-upgrade.md
-./docs/execution-quality.md
-./docs/model-quality-upgrade.md
-./docs/multi-horizon-regime.md
-./docs/position-sizing-risk.md
-./docs/replay-import.md
-./docs/seed-evaluation.md
-./docs/self-training-feedback.md
-./docs/strict-seed-evaluation.md
-./docs/tournament-overlay.md
-./docs/upg-notes.md
-./package-lock.json
-./package.json
-./scripts
-./scripts/cron-example.sh
-./scripts/housekeeping.sh
-./scripts/run-daily-safe.sh
-./scripts/sweep-upg-strict.sh
-./scripts/sweep-upg.sh
-./src
-./src/backtest
-./src/backtest/walkForward.js
-./src/cli
-./src/cli/index.js
-./src/config
-./src/config/defaults.js
-./src/data
-./src/data/sources.js
-./src/features
-./src/features/indicators.js
-./src/models
-./src/models/ensemble.js
-./src/models/heuristicSignals.js
-./src/models/onlineLogistic.js
-./src/models/policy.js
-./src/models/risk.js
-./src/models/selfTraining.js
-./src/models/tournament.js
-./src/pipeline
-./src/pipeline/daily.js
-./src/pipeline/importReplay.js
-./src/pipeline/state.js
-./src/utils
-./src/utils/fs.js
-./src/utils/http.js
-./src/utils/lock.js
-./src/utils/math.js
-./src/utils/regime.js
-./src/utils/stateMaintenance.js
-./state
-./state/crypto
-./state/crypto/BTCUSD
-./state/logs
-./state/logs/run-stocks-AAPL-20260516-143403.json
-./state/stocks
-./state/stocks/AAPL
-./test
-./test/fixtures
-./test/fixtures/sample-feedback-aapl.jsonl
-./test/fixtures/sample-predictions-aapl.jsonl
-./test/importReplay.test.js
-./test/policy.test.js
-./test/risk.test.js
-./test/selfTraining.test.js
-./test/stateMaintenance.test.js
-./test/tournament.test.js
+This repo now includes a helper for future scaffold experiments:
+
+```bash
+./scripts/sweep-upg.sh output/generated-seeds 7 13 21 34
+```
+
+That command uses constrained UPG seeds for local `cli` and `library` targets so you can compare multiple boilerplates without drifting into server-first project shapes.
+
+A simple make-based local workflow is also available:
+
+```bash
+make stock
+make crypto
+make report SYMBOL=BTCUSD ASSET=crypto LOOKBACK=500
+```
+
+## Strict UPG sweep
+
+For a stricter Node-only scaffold search, use:
+
+```bash
+./scripts/sweep-upg-strict.sh output/generated-seeds-strict 7 13 21 34 42 55
+```
+
+This version pins both the language and runtime so UPG stays inside JavaScript/TypeScript local package shapes.
+
+## Core upgrade
+
+The suite now includes:
+
+- Provider fallbacks for stocks and crypto.
+- Leakage-free live prediction based on the newest unlabeled bar.
+- A simple ensemble that blends online logistic learning with a heuristic signal model.
+- Daily evaluation metrics with Brier score and pending-prediction tracking.
+
+Example upgraded workflow:
+
+```bash
+node src/cli/index.js run-daily --symbol AAPL --asset stocks --lookback 250
+node src/cli/index.js run-daily --symbol BTCUSD --asset crypto --lookback 250
+node src/cli/index.js report --symbol AAPL --asset stocks
+```
+
+## Model quality upgrade
+
+The latest pass improves model quality with:
+
+- Additional standard technical signals, including EMA spread, MACD-style gap, stochastic oscillator, ATR, Bollinger z-score, breakout position, range compression, and short streak features.
+- A Platt-style probability calibrator trained on recent walk-forward predictions.
+- Stronger validation outputs, including log loss alongside accuracy and Brier score.
+
+Example quality-focused checks:
+
+```bash
+node src/cli/index.js train --symbol AAPL --asset stocks --lookback 250
+node src/cli/index.js backtest --symbol BTCUSD --asset crypto --lookback 250
+node src/cli/index.js report --symbol AAPL --asset stocks
+```
+
+## Execution quality pass
+
+The suite now includes execution hardening for unattended local runs:
+
+- Per-target lock files to avoid overlapping executions.
+- `doctor` for quick state inspection.
+- `prune-state` for retention-based cleanup.
+- `scripts/run-daily-safe.sh` for cron-friendly JSON-logged runs.
+- `scripts/housekeeping.sh` for cleanup plus diagnostics.
+- Built-in `node --test` coverage for core state-maintenance behavior.
+
+Example operations:
+
+```bash
+node src/cli/index.js doctor --symbol AAPL --asset stocks
+node src/cli/index.js prune-state --symbol AAPL --asset stocks --retention-days 120 --max-predictions 200 --dry-run
+bash scripts/run-daily-safe.sh AAPL stocks 250 state
+npm test
+```
+
+
+## Multi-horizon and regime pass
+
+The suite now predicts across multiple horizons and tracks market regime context:
+
+- Multi-horizon targets for 1-day, 3-day, and 5-day direction.
+- Regime labeling from trend, volatility, and breakout state.
+- Horizon-specific walk-forward metrics, including regime-sliced accuracy, Brier score, and log loss.
+- Live predictions that return a regime plus calibrated probabilities for each horizon.
+
+Example commands:
+
+```bash
+node src/cli/index.js train --symbol AAPL --asset stocks --lookback 260
+node src/cli/index.js backtest --symbol BTCUSD --asset crypto --lookback 260
+node src/cli/index.js run-daily --symbol AAPL --asset stocks --lookback 260
+```
+
+
+## Tournament overlay
+
+An additive tournament layer is now available without changing the core workflow:
+
+- `tournament` ranks logistic, heuristic, raw ensemble, and calibrated ensemble entrants for each horizon.
+- `tournament-predict` produces a live meta-ensemble overlay using tournament-derived weights.
+- Existing commands still work the same way; this is an additional decision layer rather than a replacement.
+
+Example commands:
+
+```bash
+node src/cli/index.js tournament --symbol AAPL --asset stocks --lookback 260
+node src/cli/index.js tournament-predict --symbol BTCUSD --asset crypto --lookback 260
+```
+
+
+## Confidence gating and consensus policies
+
+A new additive policy layer now sits on top of the tournament overlay:
+
+- `policy-predict` computes per-horizon confidence and a final `long`, `short`, or `hold` action.
+- The defaults are conservative and can be tuned with CLI flags.
+- Core commands still behave the same; this is an extra decision layer.
+
+Example commands:
+
+```bash
+node src/cli/index.js policy-predict --symbol AAPL --asset stocks --lookback 260
+node src/cli/index.js policy-predict --symbol BTCUSD --asset crypto --lookback 260 --min-consensus-weight 0.6
+```
+
+
+## Position sizing and risk rules
+
+A new additive risk layer now sits on top of policy gating:
+
+- `risk-predict` outputs a final `long`, `short`, or `hold` plus exposure, stop loss, take profit, trailing stop, and no-trade reasons.
+- This layer is still local and additive; it does not replace the underlying prediction, tournament, or policy commands.
+
+Example commands:
+
+```bash
+node src/cli/index.js risk-predict --symbol AAPL --asset stocks --lookback 260
+node src/cli/index.js risk-predict --symbol BTCUSD --asset crypto --lookback 260 --max-risk-fraction 0.008
+```
+
+
+## Self-training feedback loop
+
+The suite now saves standardized prediction and resolved-feedback records so it can update itself from its own prior calls:
+
+- `prediction-ledger.jsonl` stores normalized prediction outputs.
+- `feedback-records.jsonl` stores normalized resolved outcomes after evaluation.
+- `feedback-report` inspects the ledgers and self-training summary.
+- `train`, `predict`, `tournament-predict`, `policy-predict`, and `risk-predict` now consume the feedback summary automatically.
+
+Example commands:
+
+```bash
+node src/cli/index.js predict --symbol AAPL --asset stocks --lookback 260
+node src/cli/index.js evaluate --symbol AAPL --asset stocks --lookback 260
+node src/cli/index.js feedback-report --symbol AAPL --asset stocks
+```
+
+
+## Replay and import
+
+You can now bulk load historical standardized records into the local ledgers:
+
+- `import-predictions --input path/to/predictions.jsonl`
+- `import-feedback --input path/to/feedback.jsonl`
+- `replay-feedback` to rebuild the self-training summary from the imported ledgers
+
+Example:
+
+```bash
+node src/cli/index.js import-predictions --symbol AAPL --asset stocks --input test/fixtures/sample-predictions-aapl.jsonl
+node src/cli/index.js import-feedback --symbol AAPL --asset stocks --input test/fixtures/sample-feedback-aapl.jsonl
+node src/cli/index.js replay-feedback --symbol AAPL --asset stocks
 ```

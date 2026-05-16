@@ -1,0 +1,33 @@
+{
+  "name": "market-predictor-suite",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Local-first market prediction MVP for stocks or crypto using free public data sources, daily evaluation, and incremental model updates.",
+  "type": "module",
+  "bin": {
+    "mps": "src/cli/index.js"
+  },
+  "scripts": {
+    "fetch": "node src/cli/index.js fetch",
+    "train": "node src/cli/index.js train",
+    "predict": "node src/cli/index.js predict",
+    "evaluate": "node src/cli/index.js evaluate",
+    "run:daily": "node src/cli/index.js run-daily",
+    "backtest": "node src/cli/index.js backtest",
+    "report": "node src/cli/index.js report",
+    "example:stock": "node src/cli/index.js run-daily --symbol AAPL --asset stocks --lookback 365",
+    "example:crypto": "node src/cli/index.js run-daily --symbol BTCUSD --asset crypto --lookback 365",
+    "test": "node --test test/*.test.js",
+    "test:state": "node --test test/stateMaintenance.test.js",
+    "run:daily:safe": "bash scripts/run-daily-safe.sh AAPL stocks 250 state",
+    "housekeeping": "bash scripts/housekeeping.sh AAPL stocks state 120 200",
+    "test:tournament": "node --test test/tournament.test.js",
+    "test:policy": "node --test test/policy.test.js",
+    "test:risk": "node --test test/risk.test.js",
+    "test:self-training": "node --test test/selfTraining.test.js",
+    "test:import-replay": "node --test test/importReplay.test.js"
+  },
+  "dependencies": {
+    "commander": "^14.0.0"
+  }
+}
